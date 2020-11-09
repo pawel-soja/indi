@@ -24,6 +24,7 @@
 
 #include "indidevapi.h"
 #include "fpsmeter.h"
+#include "uniquebuffer.h"
 #include "recorder/recordermanager.h"
 #include "encoder/encodermanager.h"
 
@@ -32,6 +33,7 @@
 #include <functional>
 #include <list>
 #include <thread>
+#include <mutex>
 #include <atomic>
 #include <condition_variable>
 #include <sys/time.h>
@@ -94,13 +96,12 @@
 \author Jean-Luc Geehalel
 */
 
-#include <mutex>
-
 namespace INDI
 {
 
 class CCD;
 class SensorInterface;
+
 
 class StreamManager
 {
@@ -127,9 +128,10 @@ class StreamManager
         virtual bool saveConfigItems(FILE *fp);
 
         /**
-             * @brief newFrame CCD drivers call this function when a new frame is received. It is then streamed, or recorded, or both according to the settings in the streamer.
-             */
+         * @brief newFrame CCD drivers call this function when a new frame is received. It is then streamed, or recorded, or both according to the settings in the streamer.
+         */
         void newFrame(const uint8_t *buffer, uint32_t nbytes);
+
 
         /**
          * @brief Thread processing frames and forwarding to recording and preview
@@ -137,10 +139,10 @@ class StreamManager
         void asyncStreamThread();
 
         /**
-             * @brief setStream Enables (starts) or disables (stops) streaming.
-             * @param enable True to enable, false to disable
-             * @return True if operation is successful, false otherwise.
-             */
+         * @brief setStream Enables (starts) or disables (stops) streaming.
+         * @param enable True to enable, false to disable
+         * @return True if operation is successful, false otherwise.
+         */
         bool setStream(bool enable);
 
         RecorderInterface *getRecorder()
@@ -209,10 +211,21 @@ class StreamManager
         bool uploadStream(const uint8_t *buffer, uint32_t nbytes);
 
         /**
-             * @brief recordStream Calls the backend recorder to record a single frame.
-             * @param deltams time in milliseconds since last frame
-             */
+         * @brief recordStream Calls the backend recorder to record a single frame.
+         * @param deltams time in milliseconds since last frame
+         */
         bool recordStream(const uint8_t *buffer, uint32_t nbytes, double deltams);
+
+        /**
+         * @brief Data swapping in the capture driver.
+         *
+         * If the buffer address and size are the same as in the caputer driver,
+         * the buffer in the driver is changed so that the next frame does not overwrite the actual data that can be processed.
+         * @param buffer the buffer from  "newFrame" function
+         * @param size   the size of the buffer from "newFrame" function
+         * @return true if the operation is successful
+         */
+        bool stealFrame(const uint8_t * buffer, uint32_t size);
 
         void prepareGammaLUT(double gamma = 2.4, double a = 12.92, double b = 0.055, double Ii = 0.00304);
 
@@ -297,8 +310,11 @@ class StreamManager
         // Processing for streaming
         typedef struct {
             double time;
-            std::vector<uint8_t> frame;
+            UniqueBuffer frame;
         } TimeFrame;
+
+        UniqueBuffer             m_freeFrame;       // allocated memory can be used for the next capture
+        bool                     m_freeFrameNeeded; // don't keep the free frame if you can't steal
 
         std::thread              m_framesThread;   // async incoming frames processing
         std::mutex               m_framesMutex;    // protect read/write framesBuffer

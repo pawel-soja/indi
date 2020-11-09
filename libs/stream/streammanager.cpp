@@ -43,6 +43,7 @@ StreamManager::StreamManager(DefaultDevice *mainDevice)
 
     m_isStreaming = false;
     m_isRecording = false;
+    m_freeFrameNeeded = false;
 
     prepareGammaLUT();
 
@@ -258,6 +259,76 @@ bool StreamManager::updateProperties()
     return true;
 }
 
+bool StreamManager::stealFrame(const uint8_t * buffer, uint32_t nbytes)
+{
+    if(currentDevice->getDriverInterface() & INDI::DefaultDevice::CCD_INTERFACE)
+    {
+        INDI::CCD * ccd = dynamic_cast<INDI::CCD*>(currentDevice);
+
+        // the buffer can be replaced?
+        // compare buffer pointer and size, it must be sure that it will not damage the driver.
+        if (buffer == ccd->PrimaryCCD.getFrameBuffer() && nbytes == uint32_t(ccd->PrimaryCCD.getFrameBufferSize()))
+        {
+            // if there is already allocated space, use it
+            {
+                std::lock_guard<std::mutex> lock(m_framesMutex);
+                if (m_freeFrame.size() == nbytes)
+                {
+                    ccd->PrimaryCCD.setFrameBuffer(m_freeFrame.release());
+                    return true;
+                }
+            }
+
+            // otherwise, allocate new memory
+            ccd->PrimaryCCD.setFrameBuffer(static_cast<uint8_t*>(malloc(nbytes)));
+            return true;
+        }
+    }
+
+#if 0
+    if(currentDevice->getDriverInterface() & INDI::DefaultDevice::SENSOR_INTERFACE)
+    {
+        INDI::SensorInterface* sensor = dynamic_cast<INDI::SensorInterface*>(currentDevice);
+        /* To be implemented.
+         * Currently, I don't see an easy way to get into a buffer change.
+         * Probably requires modification of the driver.
+         *
+         * e.g.
+         *
+         * if (ImageColorS[IMAGE_GRAYSCALE].s == ISS_ON)
+         * {
+         *     V4LFrame->Y = v4l_base->getY(); // <--- protected access
+         *     totalBytes  = width * height * (dbpp / 8);
+         *     buffer      = V4LFrame->Y;
+         * }
+         * else
+         * {
+         *     V4LFrame->RGB24Buffer = v4l_base->getRGBBuffer(); // <--- protected access
+         *     totalBytes            = width * height * (dbpp / 8) * 3;
+         *     buffer                = V4LFrame->RGB24Buffer;
+         * }
+         *
+         *...
+         *
+         * if (PrimaryCCD.getBinX() > 1)
+         * {
+         *     memcpy(PrimaryCCD.getFrameBuffer(), buffer, totalBytes);
+         *     PrimaryCCD.binFrame();
+         *     guard.unlock();
+         *     Streamer->newFrame(PrimaryCCD.getFrameBuffer(), frameBytes / PrimaryCCD.getBinX()); // <--- diffrent size
+         * }
+         * else
+         * {
+         *     guard.unlock();
+         *     Streamer->newFrame(buffer, frameBytes); // <- incomming buffer
+         * }
+         */
+    }
+#endif
+
+    return false;
+}
+
 /*
  * The camera driver is expected to send the FULL FRAME of the Camera after BINNING without any subframing at all
  * Subframing for streaming/recording is done in the stream manager.
@@ -291,7 +362,16 @@ void StreamManager::newFrame(const uint8_t * buffer, uint32_t nbytes)
 
     if (isStreaming() || isRecording())
     {
-        std::vector<uint8_t> copyBuffer(buffer, buffer + nbytes);
+        // if the source buffer address can be changed,
+        // we steal the buffer to put it in the processing queue without creating a copy.
+        #warning UniqueBuffer implementation may have bad free memory. Mismatched free () / delete / delete []
+        bool canSteal = stealFrame(buffer, nbytes);
+        m_freeFrameNeeded = canSteal; // save this information and now always be ready
+
+        UniqueBuffer queueBuffer =
+            canSteal ?
+            UniqueBuffer(const_cast<uint8_t*>(buffer), nbytes) : // stolen frame, we own it
+            UniqueBuffer::copy(buffer, nbytes);
 
         std::lock_guard<std::mutex> lock(m_framesMutex);
         if (m_framesBuffer.size() > 0)
@@ -303,7 +383,7 @@ void StreamManager::newFrame(const uint8_t * buffer, uint32_t nbytes)
                 return;
             }
         }
-        m_framesBuffer.push_back(TimeFrame{m_FPSFast.deltaTime(), std::move(copyBuffer)}); // add copy of frame to queue
+        m_framesBuffer.push_back(TimeFrame{m_FPSFast.deltaTime(), std::move(queueBuffer)}); // move frame to queue
         m_framesIncoming.notify_all();
     }
 
@@ -320,7 +400,7 @@ void StreamManager::newFrame(const uint8_t * buffer, uint32_t nbytes)
             LOG_INFO("Waiting for all buffered frames to be recorded");
             {
                 std::unique_lock<std::mutex> lock(m_framesMutex);
-                m_framesBufferEmpty.wait(lock, [&](){ return m_framesBuffer.size() == 0; });
+                m_framesBufferEmpty.wait(lock, [this](){ return m_framesBuffer.size() == 0; });
             }
             // duplicated message
 #if 0
@@ -358,6 +438,10 @@ void StreamManager::asyncStreamThread()
     {
         {
             std::unique_lock<std::mutex> lock(m_framesMutex);
+
+            // when a new frame is taken, the old one can serve as a buffer for new data.
+            if (m_freeFrameNeeded && m_freeFrame.data() == nullptr)
+                m_freeFrame = std::move(sourceTimeFrame.frame);
 
             if (m_framesBuffer.size() == 0)
             {
