@@ -272,15 +272,16 @@ bool StreamManager::stealFrame(const uint8_t * buffer, uint32_t nbytes)
             // if there is already allocated space, use it
             {
                 std::lock_guard<std::mutex> lock(m_framesMutex);
-                if (m_freeFrame.size() == nbytes)
+                if (m_freeFrame.size == nbytes)
                 {
-                    ccd->PrimaryCCD.setFrameBuffer(m_freeFrame.release());
+                    ccd->PrimaryCCD.setFrameBuffer(m_freeFrame.data.release());
+                    m_freeFrame.size = 0;
                     return true;
                 }
             }
 
             // otherwise, allocate new memory
-            ccd->PrimaryCCD.setFrameBuffer(static_cast<uint8_t*>(malloc(nbytes)));
+            ccd->PrimaryCCD.setFrameBuffer(new uint8_t[nbytes]);
             return true;
         }
     }
@@ -329,6 +330,21 @@ bool StreamManager::stealFrame(const uint8_t * buffer, uint32_t nbytes)
     return false;
 }
 
+static StreamManager::Frame copyFrame(const uint8_t * data, uint32_t size)
+{
+    uint8_t* copy = new uint8_t[size];
+
+    if(copy != nullptr)
+        ::memcpy(copy, data, size);
+
+    return StreamManager::Frame{std::unique_ptr<uint8_t[]>(copy), size};
+}
+
+static StreamManager::Frame moveFrame(const uint8_t * data, uint32_t size)
+{
+    return StreamManager::Frame{std::unique_ptr<uint8_t[]>(const_cast<uint8_t*>(data)), size};
+}
+
 /*
  * The camera driver is expected to send the FULL FRAME of the Camera after BINNING without any subframing at all
  * Subframing for streaming/recording is done in the stream manager.
@@ -353,7 +369,7 @@ void StreamManager::newFrame(const uint8_t * buffer, uint32_t nbytes)
     {
         FpsN[0].value = m_FPSFast.framesPerSecond();
         if (m_fastFPSUpdate.try_lock()) // don't block stream thread / record thread
-            std::thread([&](){ IDSetNumber(&FpsNP, nullptr); m_fastFPSUpdate.unlock(); }).detach();
+            std::thread([this](){ IDSetNumber(&FpsNP, nullptr); m_fastFPSUpdate.unlock(); }).detach();
     }
 
     if (StreamExposureN[STREAM_DIVISOR].value > 1
@@ -364,19 +380,18 @@ void StreamManager::newFrame(const uint8_t * buffer, uint32_t nbytes)
     {
         // if the source buffer address can be changed,
         // we steal the buffer to put it in the processing queue without creating a copy.
-        #warning UniqueBuffer implementation may have bad free memory. Mismatched free () / delete / delete []
         bool canSteal = stealFrame(buffer, nbytes);
         m_freeFrameNeeded = canSteal; // save this information and now always be ready
 
-        UniqueBuffer queueBuffer =
+        Frame queueBuffer =
             canSteal ?
-            UniqueBuffer(const_cast<uint8_t*>(buffer), nbytes) : // stolen frame, we own it
-            UniqueBuffer::copy(buffer, nbytes);
+            moveFrame(buffer, nbytes) : // stolen frame, we own it
+            copyFrame(buffer, nbytes);
 
         std::lock_guard<std::mutex> lock(m_framesMutex);
         if (m_framesBuffer.size() > 0)
         {
-            uint32_t allocated = m_framesBuffer.size() * m_framesBuffer.front().frame.size() / 1024 / 1024; // MB
+            uint32_t allocated = m_framesBuffer.size() * m_framesBuffer.front().frame.size / 1024 / 1024; // MB
             if (allocated > LimitsN[LIMITS_BUFFER_MAX].value)
             {
                 LOG_WARN("Frame buffer is full, skipping frame...");
@@ -440,7 +455,7 @@ void StreamManager::asyncStreamThread()
             std::unique_lock<std::mutex> lock(m_framesMutex);
 
             // when a new frame is taken, the old one can serve as a buffer for new data.
-            if (m_freeFrameNeeded && m_freeFrame.data() == nullptr)
+            if (m_freeFrameNeeded && m_freeFrame.data.get() == nullptr)
                 m_freeFrame = std::move(sourceTimeFrame.frame);
 
             if (m_framesBuffer.size() == 0)
@@ -459,8 +474,8 @@ void StreamManager::asyncStreamThread()
             m_framesBuffer.pop_front();
         }
 
-        const uint8_t *sourceBufferData = sourceTimeFrame.frame.data();
-        uint32_t nbytes                 = sourceTimeFrame.frame.size();
+        const uint8_t *sourceBufferData = sourceTimeFrame.frame.data.get();
+        uint32_t nbytes                 = sourceTimeFrame.frame.size;
 
 #if 1 // TODO move above the loop
         int subX = 0, subY = 0, subW = 0, subH = 0;

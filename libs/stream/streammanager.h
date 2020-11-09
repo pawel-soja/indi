@@ -24,7 +24,6 @@
 
 #include "indidevapi.h"
 #include "fpsmeter.h"
-#include "uniquebuffer.h"
 #include "recorder/recordermanager.h"
 #include "encoder/encodermanager.h"
 
@@ -307,13 +306,19 @@ class StreamManager
         uint16_t rawWidth = 0, rawHeight = 0;
         std::string m_Format;
 
-        // Processing for streaming
+public: // Frame struct helper
+        typedef struct {
+            std::unique_ptr<uint8_t[]> data;
+            size_t size;
+        } Frame;
+
         typedef struct {
             double time;
-            UniqueBuffer frame;
+            Frame frame;
         } TimeFrame;
 
-        UniqueBuffer             m_freeFrame;       // allocated memory can be used for the next capture
+private:
+        Frame                    m_freeFrame;       // allocated memory can be used for the next capture
         bool                     m_freeFrameNeeded; // don't keep the free frame if you can't steal
 
         std::thread              m_framesThread;   // async incoming frames processing
@@ -322,10 +327,8 @@ class StreamManager
         std::condition_variable  m_framesIncoming; // wakeup thread, new frames in framesBuffer
         std::atomic<bool>        m_framesThreadTerminate;
         std::condition_variable  m_framesBufferEmpty;
-
         std::mutex               m_fastFPSUpdate;
-
-        std::mutex m_recordMutex;
+        std::mutex               m_recordMutex;
 
         uint8_t *gammaLUT_16_8 = nullptr;
 };
