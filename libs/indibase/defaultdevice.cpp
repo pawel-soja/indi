@@ -909,46 +909,46 @@ bool DefaultDevice::initProperties()
     D_PTR(DefaultDevice);
     char versionStr[16];
     char interfaceStr[16];
-
+    fprintf(stderr, "%s:%d (%s)\n", __FILE__, __LINE__, __FUNCTION__);
     snprintf(versionStr, 16, "%d.%d", d->majorVersion, d->minorVersion);
     snprintf(interfaceStr, 16, "%d", d->interfaceDescriptor);
-
+    fprintf(stderr, "%s:%d (%s)\n", __FILE__, __LINE__, __FUNCTION__);
     d->ConnectionSP[INDI_ENABLED ].fill("CONNECT",    "Connect",    ISS_OFF);
     d->ConnectionSP[INDI_DISABLED].fill("DISCONNECT", "Disconnect", ISS_ON);
     d->ConnectionSP.fill(getDeviceName(), INDI::SP::CONNECTION, "Connection", "Main Control", IP_RW, ISR_1OFMANY, 60, IPS_IDLE);
     registerProperty(d->ConnectionSP);
-
+    fprintf(stderr, "%s:%d (%s)\n", __FILE__, __LINE__, __FUNCTION__);
     d->DriverInfoTP[0].fill("DRIVER_NAME", "Name", getDriverName());
     d->DriverInfoTP[1].fill("DRIVER_EXEC", "Exec", getDriverExec());
     d->DriverInfoTP[2].fill("DRIVER_VERSION", "Version", versionStr);
     d->DriverInfoTP[3].fill("DRIVER_INTERFACE", "Interface", interfaceStr);
     d->DriverInfoTP.fill(getDeviceName(), "DRIVER_INFO", "Driver Info", CONNECTION_TAB, IP_RO, 60, IPS_IDLE);
     registerProperty(d->DriverInfoTP);
-
+    fprintf(stderr, "%s:%d (%s)\n", __FILE__, __LINE__, __FUNCTION__);
     d->DebugSP[INDI_ENABLED ].fill("ENABLE",  "Enable",  ISS_OFF);
     d->DebugSP[INDI_DISABLED].fill("DISABLE", "Disable", ISS_ON);
     d->DebugSP.fill(getDeviceName(), "DEBUG", "Debug", "Options", IP_RW, ISR_1OFMANY, 0, IPS_IDLE);
-
+    fprintf(stderr, "%s:%d (%s)\n", __FILE__, __LINE__, __FUNCTION__);
     d->SimulationSP[INDI_ENABLED ].fill("ENABLE",  "Enable",  ISS_OFF);
     d->SimulationSP[INDI_DISABLED].fill("DISABLE", "Disable", ISS_ON);
     d->SimulationSP.fill(getDeviceName(), "SIMULATION", "Simulation", "Options", IP_RW, ISR_1OFMANY, 0, IPS_IDLE);
-
+    fprintf(stderr, "%s:%d (%s)\n", __FILE__, __LINE__, __FUNCTION__);
     d->ConfigProcessSP[0].fill("CONFIG_LOAD",    "Load",    ISS_OFF);
     d->ConfigProcessSP[1].fill("CONFIG_SAVE",    "Save",    ISS_OFF);
     d->ConfigProcessSP[2].fill("CONFIG_DEFAULT", "Default", ISS_OFF);
     d->ConfigProcessSP[3].fill("CONFIG_PURGE",   "Purge",   ISS_OFF);
     d->ConfigProcessSP.fill(getDeviceName(), "CONFIG_PROCESS", "Configuration", "Options", IP_RW, ISR_ATMOST1, 0, IPS_IDLE);
-
+    fprintf(stderr, "%s:%d (%s)\n", __FILE__, __LINE__, __FUNCTION__);
     d->PollPeriodNP[0].fill("PERIOD_MS", "Period (ms)", "%.f", 10, 600000, 1000, d->pollingPeriod);
     d->PollPeriodNP.fill(getDeviceName(), "POLLING_PERIOD", "Polling", "Options", IP_RW, 0, IPS_IDLE);
-
+    fprintf(stderr, "%s:%d (%s)\n", __FILE__, __LINE__, __FUNCTION__);
     INDI::Logger::initProperties(this);
-
+    fprintf(stderr, "%s:%d (%s)\n", __FILE__, __LINE__, __FUNCTION__);
     // Ready the logger
     std::string logFile = getDriverExec();
-
+    fprintf(stderr, "%s:%d (%s)\n", __FILE__, __LINE__, __FUNCTION__);
     DEBUG_CONF(logFile, Logger::file_off | Logger::screen_on, Logger::defaultlevel, Logger::defaultlevel);
-
+    fprintf(stderr, "%s:%d (%s)\n", __FILE__, __LINE__, __FUNCTION__);
     return true;
 }
 

@@ -65,14 +65,15 @@ Telescope::~Telescope()
 
 bool Telescope::initProperties()
 {
+    fprintf(stderr, "%s:%d (%s)\n", __FILE__, __LINE__, __FUNCTION__);
     DefaultDevice::initProperties();
-
+    fprintf(stderr, "%s:%d (%s)\n", __FILE__, __LINE__, __FUNCTION__);
     // Active Devices
     IUFillText(&ActiveDeviceT[0], "ACTIVE_GPS", "GPS", "GPS Simulator");
     IUFillText(&ActiveDeviceT[1], "ACTIVE_DOME", "DOME", "Dome Simulator");
     IUFillTextVector(&ActiveDeviceTP, ActiveDeviceT, 2, getDeviceName(), "ACTIVE_DEVICES", "Snoop devices", OPTIONS_TAB,
                      IP_RW, 60, IPS_IDLE);
-
+    fprintf(stderr, "%s:%d (%s)\n", __FILE__, __LINE__, __FUNCTION__);
     // Use locking if dome is closed (and or) park scope if dome is closing
     IUFillSwitch(&DomePolicyS[DOME_IGNORED], "DOME_IGNORED", "Dome ignored", ISS_ON);
     IUFillSwitch(&DomePolicyS[DOME_LOCKS], "DOME_LOCKS", "Dome locks", ISS_OFF);
@@ -80,25 +81,25 @@ bool Telescope::initProperties()
     //    IUFillSwitch(&DomeClosedLockT[3], "LOCK_AND_FORCE", "Both", ISS_OFF);
     IUFillSwitchVector(&DomePolicySP, DomePolicyS, 2, getDeviceName(), "DOME_POLICY", "Dome Policy",  OPTIONS_TAB, IP_RW,
                        ISR_1OFMANY, 60, IPS_IDLE);
-
+    fprintf(stderr, "%s:%d (%s)\n", __FILE__, __LINE__, __FUNCTION__);
     IUFillNumber(&EqN[AXIS_RA], "RA", "RA (hh:mm:ss)", "%010.6m", 0, 24, 0, 0);
     IUFillNumber(&EqN[AXIS_DE], "DEC", "DEC (dd:mm:ss)", "%010.6m", -90, 90, 0, 0);
     IUFillNumberVector(&EqNP, EqN, 2, getDeviceName(), "EQUATORIAL_EOD_COORD", "Eq. Coordinates", MAIN_CONTROL_TAB,
                        IP_RW, 60, IPS_IDLE);
     lastEqState = IPS_IDLE;
-
+    fprintf(stderr, "%s:%d (%s)\n", __FILE__, __LINE__, __FUNCTION__);
     IUFillNumber(&TargetN[AXIS_RA], "RA", "RA (hh:mm:ss)", "%010.6m", 0, 24, 0, 0);
     IUFillNumber(&TargetN[AXIS_DE], "DEC", "DEC (dd:mm:ss)", "%010.6m", -90, 90, 0, 0);
     IUFillNumberVector(&TargetNP, TargetN, 2, getDeviceName(), "TARGET_EOD_COORD", "Slew Target", MOTION_TAB, IP_RO, 60,
                        IPS_IDLE);
-
+    fprintf(stderr, "%s:%d (%s)\n", __FILE__, __LINE__, __FUNCTION__);
     IUFillSwitch(&ParkOptionS[PARK_CURRENT], "PARK_CURRENT", "Current", ISS_OFF);
     IUFillSwitch(&ParkOptionS[PARK_DEFAULT], "PARK_DEFAULT", "Default", ISS_OFF);
     IUFillSwitch(&ParkOptionS[PARK_WRITE_DATA], "PARK_WRITE_DATA", "Write Data", ISS_OFF);
     IUFillSwitch(&ParkOptionS[PARK_PURGE_DATA], "PARK_PURGE_DATA", "Purge Data", ISS_OFF);
     IUFillSwitchVector(&ParkOptionSP, ParkOptionS, 4, getDeviceName(), "TELESCOPE_PARK_OPTION", "Park Options",
                        SITE_TAB, IP_RW, ISR_ATMOST1, 60, IPS_IDLE);
-
+    fprintf(stderr, "%s:%d (%s)\n", __FILE__, __LINE__, __FUNCTION__);
     IUFillText(&TimeT[0], "UTC", "UTC Time", nullptr);
     IUFillText(&TimeT[1], "OFFSET", "UTC Offset", nullptr);
     IUFillTextVector(&TimeTP, TimeT, 2, getDeviceName(), "TIME_UTC", "UTC", SITE_TAB, IP_RW, 60, IPS_IDLE);
@@ -108,7 +109,7 @@ bool Telescope::initProperties()
     IUFillNumber(&LocationN[LOCATION_ELEVATION], "ELEV", "Elevation (m)", "%g", -200, 10000, 0, 0);
     IUFillNumberVector(&LocationNP, LocationN, 3, getDeviceName(), "GEOGRAPHIC_COORD", "Scope Location", SITE_TAB,
                        IP_RW, 60, IPS_IDLE);
-
+    fprintf(stderr, "%s:%d (%s)\n", __FILE__, __LINE__, __FUNCTION__);
     // Pier Side
     IUFillSwitch(&PierSideS[PIER_WEST], "PIER_WEST", "West (pointing east)", ISS_OFF);
     IUFillSwitch(&PierSideS[PIER_EAST], "PIER_EAST", "East (pointing west)", ISS_OFF);
@@ -120,36 +121,36 @@ bool Telescope::initProperties()
     IUFillSwitchVector(&SimulatePierSideSP, SimulatePierSideS, 2, getDeviceName(), "SIMULATE_PIER_SIDE", "Simulate Pier Side",
                        MAIN_CONTROL_TAB,
                        IP_RW, ISR_1OFMANY, 60, IPS_IDLE);
-
+    fprintf(stderr, "%s:%d (%s)\n", __FILE__, __LINE__, __FUNCTION__);
     // PEC State
     IUFillSwitch(&PECStateS[PEC_OFF], "PEC OFF", "PEC OFF", ISS_OFF);
     IUFillSwitch(&PECStateS[PEC_ON], "PEC ON", "PEC ON", ISS_ON);
     IUFillSwitchVector(&PECStateSP, PECStateS, 2, getDeviceName(), "PEC", "PEC Playback", MOTION_TAB, IP_RW, ISR_1OFMANY, 0,
                        IPS_IDLE);
-
+    fprintf(stderr, "%s:%d (%s)\n", __FILE__, __LINE__, __FUNCTION__);
     // Track Mode. Child class must call AddTrackMode to add members
     IUFillSwitchVector(&TrackModeSP, TrackModeS, 0, getDeviceName(), "TELESCOPE_TRACK_MODE", "Track Mode", MAIN_CONTROL_TAB,
                        IP_RW, ISR_1OFMANY, 0, IPS_IDLE);
-
+    fprintf(stderr, "%s:%d (%s)\n", __FILE__, __LINE__, __FUNCTION__);
     // Track State
     IUFillSwitch(&TrackStateS[TRACK_ON], "TRACK_ON", "On", ISS_OFF);
     IUFillSwitch(&TrackStateS[TRACK_OFF], "TRACK_OFF", "Off", ISS_ON);
     IUFillSwitchVector(&TrackStateSP, TrackStateS, 2, getDeviceName(), "TELESCOPE_TRACK_STATE", "Tracking", MAIN_CONTROL_TAB,
                        IP_RW, ISR_1OFMANY, 0,
                        IPS_IDLE);
-
+    fprintf(stderr, "%s:%d (%s)\n", __FILE__, __LINE__, __FUNCTION__);
     // Track Rate
     IUFillNumber(&TrackRateN[AXIS_RA], "TRACK_RATE_RA", "RA (arcsecs/s)", "%.6f", -16384.0, 16384.0, 0.000001,
                  TRACKRATE_SIDEREAL);
     IUFillNumber(&TrackRateN[AXIS_DE], "TRACK_RATE_DE", "DE (arcsecs/s)", "%.6f", -16384.0, 16384.0, 0.000001, 0.0);
     IUFillNumberVector(&TrackRateNP, TrackRateN, 2, getDeviceName(), "TELESCOPE_TRACK_RATE", "Track Rates", MAIN_CONTROL_TAB,
                        IP_RW, 60, IPS_IDLE);
-
+    fprintf(stderr, "%s:%d (%s)\n", __FILE__, __LINE__, __FUNCTION__);
     // On Coord Set actions
     IUFillSwitch(&CoordS[0], "TRACK", "Track", ISS_ON);
     IUFillSwitch(&CoordS[1], "SLEW", "Slew", ISS_OFF);
     IUFillSwitch(&CoordS[2], "SYNC", "Sync", ISS_OFF);
-
+    fprintf(stderr, "%s:%d (%s)\n", __FILE__, __LINE__, __FUNCTION__);
     // If both GOTO and SYNC are supported
     if (CanGOTO() && CanSync())
         IUFillSwitchVector(&CoordSP, CoordS, 3, getDeviceName(), "ON_COORD_SET", "On Set", MAIN_CONTROL_TAB, IP_RW,
@@ -165,11 +166,11 @@ bool Telescope::initProperties()
         IUFillSwitchVector(&CoordSP, CoordS, 1, getDeviceName(), "ON_COORD_SET", "On Set", MAIN_CONTROL_TAB, IP_RW,
                            ISR_1OFMANY, 60, IPS_IDLE);
     }
-
+    fprintf(stderr, "%s:%d (%s)\n", __FILE__, __LINE__, __FUNCTION__);
     if (nSlewRate >= 4)
         IUFillSwitchVector(&SlewRateSP, SlewRateS, nSlewRate, getDeviceName(), "TELESCOPE_SLEW_RATE", "Slew Rate",
                            MOTION_TAB, IP_RW, ISR_1OFMANY, 0, IPS_IDLE);
-
+    fprintf(stderr, "%s:%d (%s)\n", __FILE__, __LINE__, __FUNCTION__);
     if (CanTrackSatellite())
     {
         IUFillText(&TLEtoTrackT[0], "TLE", "TLE", "");
@@ -191,16 +192,16 @@ bool Telescope::initProperties()
         IUFillSwitchVector(&TrackSatSP, TrackSatS, SAT_TRACK_COUNT, getDeviceName(), "SAT_TRACKING_STAT",
         "Sat tracking", SATELLITE_TAB, IP_RW, ISR_1OFMANY, 60, IPS_IDLE);
     }
-
+    fprintf(stderr, "%s:%d (%s)\n", __FILE__, __LINE__, __FUNCTION__);
     IUFillSwitch(&ParkS[0], "PARK", "Park(ed)", ISS_OFF);
     IUFillSwitch(&ParkS[1], "UNPARK", "UnPark(ed)", ISS_OFF);
     IUFillSwitchVector(&ParkSP, ParkS, 2, getDeviceName(), "TELESCOPE_PARK", "Parking", MAIN_CONTROL_TAB, IP_RW,
                        ISR_1OFMANY, 60, IPS_IDLE);
-
+    fprintf(stderr, "%s:%d (%s)\n", __FILE__, __LINE__, __FUNCTION__);
     IUFillSwitch(&AbortS[0], "ABORT", "Abort", ISS_OFF);
     IUFillSwitchVector(&AbortSP, AbortS, 1, getDeviceName(), "TELESCOPE_ABORT_MOTION", "Abort Motion", MAIN_CONTROL_TAB,
                        IP_RW, ISR_ATMOST1, 60, IPS_IDLE);
-
+    fprintf(stderr, "%s:%d (%s)\n", __FILE__, __LINE__, __FUNCTION__);
     IUFillSwitch(&MovementNSS[DIRECTION_NORTH], "MOTION_NORTH", "North", ISS_OFF);
     IUFillSwitch(&MovementNSS[DIRECTION_SOUTH], "MOTION_SOUTH", "South", ISS_OFF);
     IUFillSwitchVector(&MovementNSSP, MovementNSS, 2, getDeviceName(), "TELESCOPE_MOTION_NS", "Motion N/S", MOTION_TAB,
@@ -217,12 +218,12 @@ bool Telescope::initProperties()
     IUFillNumber(&ScopeParametersN[3], "GUIDER_FOCAL_LENGTH", "Guider Focal Length (mm)", "%g", 10, 10000, 0, 0.0);
     IUFillNumberVector(&ScopeParametersNP, ScopeParametersN, 4, getDeviceName(), "TELESCOPE_INFO", "Scope Properties",
                        OPTIONS_TAB, IP_RW, 60, IPS_OK);
-
+    fprintf(stderr, "%s:%d (%s)\n", __FILE__, __LINE__, __FUNCTION__);
     // Scope config name
     IUFillText(&ScopeConfigNameT[0], "SCOPE_CONFIG_NAME", "Config Name", "");
     IUFillTextVector(&ScopeConfigNameTP, ScopeConfigNameT, 1, getDeviceName(), "SCOPE_CONFIG_NAME", "Scope Name",
                      OPTIONS_TAB, IP_RW, 60, IPS_OK);
-
+    fprintf(stderr, "%s:%d (%s)\n", __FILE__, __LINE__, __FUNCTION__);
     // Switch for aperture/focal length configs
     IUFillSwitch(&ScopeConfigs[SCOPE_CONFIG1], "SCOPE_CONFIG1", "Config #1", ISS_ON);
     IUFillSwitch(&ScopeConfigs[SCOPE_CONFIG2], "SCOPE_CONFIG2", "Config #2", ISS_OFF);
@@ -232,15 +233,15 @@ bool Telescope::initProperties()
     IUFillSwitch(&ScopeConfigs[SCOPE_CONFIG6], "SCOPE_CONFIG6", "Config #6", ISS_OFF);
     IUFillSwitchVector(&ScopeConfigsSP, ScopeConfigs, 6, getDeviceName(), "APPLY_SCOPE_CONFIG", "Scope Configs",
                        OPTIONS_TAB, IP_RW, ISR_1OFMANY, 60, IPS_OK);
-
+    fprintf(stderr, "%s:%d (%s)\n", __FILE__, __LINE__, __FUNCTION__);
     controller->initProperties();
-
+    fprintf(stderr, "%s:%d (%s)\n", __FILE__, __LINE__, __FUNCTION__);
     // Joystick motion control
     IUFillSwitch(&MotionControlModeT[0], "MOTION_CONTROL_MODE_JOYSTICK", "4-Way Joystick", ISS_ON);
     IUFillSwitch(&MotionControlModeT[1], "MOTION_CONTROL_MODE_AXES", "Two Separate Axes", ISS_OFF);
     IUFillSwitchVector(&MotionControlModeTP, MotionControlModeT, 2, getDeviceName(), "MOTION_CONTROL_MODE", "Motion Control",
                        "Joystick", IP_RW, ISR_1OFMANY, 60, IPS_IDLE);
-
+    fprintf(stderr, "%s:%d (%s)\n", __FILE__, __LINE__, __FUNCTION__);
     // Lock Axis
     IUFillSwitch(&LockAxisS[0], "LOCK_AXIS_1", "West/East", ISS_OFF);
     IUFillSwitch(&LockAxisS[1], "LOCK_AXIS_2", "North/South", ISS_OFF);
@@ -248,9 +249,9 @@ bool Telescope::initProperties()
                        ISR_ATMOST1, 60, IPS_IDLE);
 
     TrackState = SCOPE_IDLE;
-
+    fprintf(stderr, "%s:%d (%s)\n", __FILE__, __LINE__, __FUNCTION__);
     setDriverInterface(TELESCOPE_INTERFACE);
-
+    fprintf(stderr, "%s:%d (%s)\n", __FILE__, __LINE__, __FUNCTION__);
     if (telescopeConnection & CONNECTION_SERIAL)
     {
         serialConnection = new Connection::Serial(this);
@@ -260,7 +261,7 @@ bool Telescope::initProperties()
         });
         registerConnection(serialConnection);
     }
-
+    fprintf(stderr, "%s:%d (%s)\n", __FILE__, __LINE__, __FUNCTION__);
     if (telescopeConnection & CONNECTION_TCP)
     {
         tcpConnection = new Connection::TCP(this);
@@ -271,65 +272,65 @@ bool Telescope::initProperties()
 
         registerConnection(tcpConnection);
     }
-
+    fprintf(stderr, "%s:%d (%s)\n", __FILE__, __LINE__, __FUNCTION__);
     IDSnoopDevice(ActiveDeviceT[0].text, "GEOGRAPHIC_COORD");
     IDSnoopDevice(ActiveDeviceT[0].text, "TIME_UTC");
 
     IDSnoopDevice(ActiveDeviceT[1].text, "DOME_PARK");
     IDSnoopDevice(ActiveDeviceT[1].text, "DOME_SHUTTER");
-
+    fprintf(stderr, "%s:%d (%s)\n", __FILE__, __LINE__, __FUNCTION__);
     addPollPeriodControl();
-
+    fprintf(stderr, "%s:%d (%s)\n", __FILE__, __LINE__, __FUNCTION__);
     return true;
 }
 
 void Telescope::ISGetProperties(const char *dev)
 {
-    fprintf(stderr, "%s:%d\n", __FUNCTION__, __LINE__);
+    fprintf(stderr, "%s:%d (%s)\n", __FILE__, __LINE__, __FUNCTION__);
     //  First we let our parent populate
     DefaultDevice::ISGetProperties(dev);
-    fprintf(stderr, "%s:%d\n", __FUNCTION__, __LINE__);
+    fprintf(stderr, "%s:%d (%s)\n", __FILE__, __LINE__, __FUNCTION__);
     if (CanGOTO())
     {
-        fprintf(stderr, "%s:%d\n", __FUNCTION__, __LINE__);
+        fprintf(stderr, "%s:%d (%s)\n", __FILE__, __LINE__, __FUNCTION__);
         defineProperty(&ActiveDeviceTP);
-        fprintf(stderr, "%s:%d\n", __FUNCTION__, __LINE__);
+        fprintf(stderr, "%s:%d (%s)\n", __FILE__, __LINE__, __FUNCTION__);
         loadConfig(true, "ACTIVE_DEVICES");
-        fprintf(stderr, "%s:%d\n", __FUNCTION__, __LINE__);
+        fprintf(stderr, "%s:%d (%s)\n", __FILE__, __LINE__, __FUNCTION__);
         ISState isDomeIgnored = ISS_OFF;
         if (IUGetConfigSwitch(getDeviceName(), DomePolicySP.name, DomePolicyS[DOME_IGNORED].name, &isDomeIgnored) == 0)
         {
             DomePolicyS[DOME_IGNORED].s = isDomeIgnored;
             DomePolicyS[DOME_LOCKS].s = (isDomeIgnored == ISS_ON) ? ISS_OFF : ISS_ON;
         }
-        fprintf(stderr, "%s:%d\n", __FUNCTION__, __LINE__);
+        fprintf(stderr, "%s:%d (%s)\n", __FILE__, __LINE__, __FUNCTION__);
         defineProperty(&DomePolicySP);
-        fprintf(stderr, "%s:%d\n", __FUNCTION__, __LINE__);
+        fprintf(stderr, "%s:%d (%s)\n", __FILE__, __LINE__, __FUNCTION__);
     }
-    fprintf(stderr, "%s:%d\n", __FUNCTION__, __LINE__);
+    fprintf(stderr, "%s:%d (%s)\n", __FILE__, __LINE__, __FUNCTION__);
     defineProperty(&ScopeParametersNP);
     defineProperty(&ScopeConfigNameTP);
-    fprintf(stderr, "%s:%d\n", __FUNCTION__, __LINE__);
+    fprintf(stderr, "%s:%d (%s)\n", __FILE__, __LINE__, __FUNCTION__);
     if (HasDefaultScopeConfig())
     {
-        fprintf(stderr, "%s:%d\n", __FUNCTION__, __LINE__);
+        fprintf(stderr, "%s:%d (%s)\n", __FILE__, __LINE__, __FUNCTION__);
         LoadScopeConfig();
     }
     else
     {
-        fprintf(stderr, "%s:%d\n", __FUNCTION__, __LINE__);
+        fprintf(stderr, "%s:%d (%s)\n", __FILE__, __LINE__, __FUNCTION__);
         loadConfig(true, "TELESCOPE_INFO");
         loadConfig(true, "SCOPE_CONFIG_NAME");
     }
-    fprintf(stderr, "%s:%d\n", __FUNCTION__, __LINE__);
+    fprintf(stderr, "%s:%d (%s)\n", __FILE__, __LINE__, __FUNCTION__);
     if (CanGOTO())
         controller->ISGetProperties(dev);
-    fprintf(stderr, "%s:%d\n", __FUNCTION__, __LINE__);
+    fprintf(stderr, "%s:%d (%s)\n", __FILE__, __LINE__, __FUNCTION__);
 }
 
 bool Telescope::updateProperties()
 {
-    fprintf(stderr, "%s:%d\n", __FUNCTION__, __LINE__);
+    fprintf(stderr, "%s:%d (%s)\n", __FILE__, __LINE__, __FUNCTION__);
     if (isConnected())
     {
         controller->mapController("MOTIONDIR", "N/S/W/E Control", Controller::CONTROLLER_JOYSTICK, "JOYSTICK_1");

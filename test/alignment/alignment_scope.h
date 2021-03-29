@@ -14,11 +14,11 @@ class Scope : public INDI::Telescope, public INDI::AlignmentSubsystem::Alignment
 public:
     Scope(MountType mountType) : INDI::Telescope(), INDI::AlignmentSubsystem::AlignmentSubsystemForDrivers()
     {
-        fprintf(stderr, "%s:%d\n", __FUNCTION__, __LINE__);
+        fprintf(stderr, "%s:%d (%s)\n", __FILE__, __LINE__, __FUNCTION__);
         m_mountType = mountType;
-        fprintf(stderr, "%s:%d\n", __FUNCTION__, __LINE__);
+        fprintf(stderr, "%s:%d (%s)\n", __FILE__, __LINE__, __FUNCTION__);
         ISGetProperties("");
-        fprintf(stderr, "%s:%d\n", __FUNCTION__, __LINE__);
+        fprintf(stderr, "%s:%d (%s)\n", __FILE__, __LINE__, __FUNCTION__);
     }
 
     virtual const char *getDefaultName() override
@@ -29,21 +29,21 @@ public:
     // make sure to pass new values into the alignment subsytem with all the ISNew* methods
     bool ISNewNumber(const char *dev, const char *name, double values[], char *names[], int n) override
     {
-        fprintf(stderr, "%s:%d\n", __FUNCTION__, __LINE__);
+        fprintf(stderr, "%s:%d (%s)\n", __FILE__, __LINE__, __FUNCTION__);
         if (dev != nullptr && strcmp(dev, getDeviceName()) == 0)
             ProcessAlignmentNumberProperties(this, name, values, names, n);
         return true;
     }
     bool ISNewText(const char *dev, const char *name, char *texts[], char *names[], int n) override
     {
-        fprintf(stderr, "%s:%d\n", __FUNCTION__, __LINE__);
+        fprintf(stderr, "%s:%d (%s)\n", __FILE__, __LINE__, __FUNCTION__);
         if (dev != nullptr && strcmp(dev, getDeviceName()) == 0)
             ProcessAlignmentTextProperties(this, name, texts, names, n);
         return true;
     }
     bool ISNewSwitch(const char *dev, const char *name, ISState *states, char *names[], int n) override
     {
-        fprintf(stderr, "%s:%d\n", __FUNCTION__, __LINE__);
+        fprintf(stderr, "%s:%d (%s)\n", __FILE__, __LINE__, __FUNCTION__);
         if (dev != nullptr && strcmp(dev, getDeviceName()) == 0)
             ProcessAlignmentSwitchProperties(this, name, states, names, n);
         return true;
@@ -51,60 +51,62 @@ public:
     bool ISNewBLOB(const char *dev, const char *name, int sizes[], int blobsizes[], char *blobs[],
                    char *formats[], char *names[], int n) override
     {
-        fprintf(stderr, "%s:%d\n", __FUNCTION__, __LINE__);
+        fprintf(stderr, "%s:%d (%s)\n", __FILE__, __LINE__, __FUNCTION__);
         if (dev != nullptr && strcmp(dev, getDeviceName()) == 0)
             ProcessAlignmentBLOBProperties(this, name, sizes, blobsizes, blobs, formats, names, n);
         return true;
     }
     void ISGetProperties(const char *dev) override
     {
-        fprintf(stderr, "%s:%d\n", __FUNCTION__, __LINE__);
+        fprintf(stderr, "%s:%d (%s)\n", __FILE__, __LINE__, __FUNCTION__);
         INDI::Telescope::ISGetProperties(dev);
     }
     bool ISSnoopDevice(XMLEle *root) override
     {
-        fprintf(stderr, "%s:%d\n", __FUNCTION__, __LINE__);
+        fprintf(stderr, "%s:%d (%s)\n", __FILE__, __LINE__, __FUNCTION__);
         return INDI::Telescope::ISSnoopDevice(root);
     }
 
     virtual bool initProperties() override
     {
-        fprintf(stderr, "%s:%d\n", __FUNCTION__, __LINE__);
+        fprintf(stderr, "%s:%d (%s)\n", __FILE__, __LINE__, __FUNCTION__);
         INDI::Telescope::initProperties();
+        fprintf(stderr, "%s:%d (%s)\n", __FILE__, __LINE__, __FUNCTION__);
         // initialize the alignment subsystem properties AFTER creating the base telescope properties
         InitAlignmentProperties(this);
+        fprintf(stderr, "%s:%d (%s)\n", __FILE__, __LINE__, __FUNCTION__);
         return true;
     }
 
     virtual bool Handshake() override
     {
-        fprintf(stderr, "%s:%d\n", __FUNCTION__, __LINE__);
+        fprintf(stderr, "%s:%d (%s)\n", __FILE__, __LINE__, __FUNCTION__);
         // should be called before Initialise
         SetApproximateMountAlignmentFromMountType(m_mountType);
-        fprintf(stderr, "%s:%d\n", __FUNCTION__, __LINE__);
+        fprintf(stderr, "%s:%d (%s)\n", __FILE__, __LINE__, __FUNCTION__);
         // the next two lines reset the alignment database
         // skip if you want to reuse your model
         // these also need to be called before Initialise
         GetAlignmentDatabase().clear();
         UpdateSize();
-        fprintf(stderr, "%s:%d\n", __FUNCTION__, __LINE__);
+        fprintf(stderr, "%s:%d (%s)\n", __FILE__, __LINE__, __FUNCTION__);
         Initialise(this);
-        fprintf(stderr, "%s:%d\n", __FUNCTION__, __LINE__);
+        fprintf(stderr, "%s:%d (%s)\n", __FILE__, __LINE__, __FUNCTION__);
         return INDI::Telescope::Handshake();
     }
 
     virtual bool updateLocation(double latitude, double longitude, double elevation) override
     {
-        fprintf(stderr, "%s:%d\n", __FUNCTION__, __LINE__);
+        fprintf(stderr, "%s:%d (%s)\n", __FILE__, __LINE__, __FUNCTION__);
         // call UpdateLocation in the alignment subsystem
         UpdateLocation(latitude, longitude, elevation);
-        fprintf(stderr, "%s:%d\n", __FUNCTION__, __LINE__);
+        fprintf(stderr, "%s:%d (%s)\n", __FILE__, __LINE__, __FUNCTION__);
         return true;
     }
 
     virtual bool ReadScopeStatus() override
     {
-        fprintf(stderr, "%s:%d\n", __FUNCTION__, __LINE__);
+        fprintf(stderr, "%s:%d (%s)\n", __FILE__, __LINE__, __FUNCTION__);
         if (m_mountType == EQUATORIAL)
         {
             // TODO: Implement your own code to read the RA/Dec from the scope.
@@ -159,7 +161,7 @@ public:
 
     virtual bool Sync(double ra, double dec) override
     {
-        fprintf(stderr, "%s:%d\n", __FUNCTION__, __LINE__);
+        fprintf(stderr, "%s:%d (%s)\n", __FILE__, __LINE__, __FUNCTION__);
         if (m_mountType == EQUATORIAL)
         {
             // In an actual driver, you would get the mounts RA/Dec and use them here.
@@ -193,7 +195,7 @@ public:
 
     virtual bool Goto(double ra, double dec) override
     {
-        fprintf(stderr, "%s:%d\n", __FUNCTION__, __LINE__);
+        fprintf(stderr, "%s:%d (%s)\n", __FILE__, __LINE__, __FUNCTION__);
         if (m_mountType == EQUATORIAL)
         {
             double mountRA, mountDec;
@@ -222,13 +224,13 @@ public:
 
 void ISGetProperties(const char *dev)
 {
-    fprintf(stderr, "%s:%d\n", __FUNCTION__, __LINE__);
+    fprintf(stderr, "%s:%d (%s)\n", __FILE__, __LINE__, __FUNCTION__);
     INDI_UNUSED(dev);
 }
 
 void ISNewSwitch(const char *dev, const char *name, ISState *states, char *names[], int n)
 {
-    fprintf(stderr, "%s:%d\n", __FUNCTION__, __LINE__);
+    fprintf(stderr, "%s:%d (%s)\n", __FILE__, __LINE__, __FUNCTION__);
     INDI_UNUSED(dev);
     INDI_UNUSED(name);
     INDI_UNUSED(states);
@@ -238,7 +240,7 @@ void ISNewSwitch(const char *dev, const char *name, ISState *states, char *names
 
 void ISNewText(const char *dev, const char *name, char *texts[], char *names[], int n)
 {
-    fprintf(stderr, "%s:%d\n", __FUNCTION__, __LINE__);
+    fprintf(stderr, "%s:%d (%s)\n", __FILE__, __LINE__, __FUNCTION__);
     INDI_UNUSED(dev);
     INDI_UNUSED(name);
     INDI_UNUSED(texts);
@@ -248,7 +250,7 @@ void ISNewText(const char *dev, const char *name, char *texts[], char *names[], 
 
 void ISNewNumber(const char *dev, const char *name, double values[], char *names[], int n)
 {
-    fprintf(stderr, "%s:%d\n", __FUNCTION__, __LINE__);
+    fprintf(stderr, "%s:%d (%s)\n", __FILE__, __LINE__, __FUNCTION__);
     INDI_UNUSED(dev);
     INDI_UNUSED(name);
     INDI_UNUSED(values);
@@ -259,7 +261,7 @@ void ISNewNumber(const char *dev, const char *name, double values[], char *names
 void ISNewBLOB(const char *dev, const char *name, int sizes[], int blobsizes[], char *blobs[], char *formats[],
                char *names[], int n)
 {
-    fprintf(stderr, "%s:%d\n", __FUNCTION__, __LINE__);
+    fprintf(stderr, "%s:%d (%s)\n", __FILE__, __LINE__, __FUNCTION__);
     INDI_UNUSED(dev);
     INDI_UNUSED(name);
     INDI_UNUSED(sizes);
@@ -272,6 +274,6 @@ void ISNewBLOB(const char *dev, const char *name, int sizes[], int blobsizes[], 
 
 void ISSnoopDevice(XMLEle *root)
 {
-    fprintf(stderr, "%s:%d\n", __FUNCTION__, __LINE__);
+    fprintf(stderr, "%s:%d (%s)\n", __FILE__, __LINE__, __FUNCTION__);
     INDI_UNUSED(root);
 }
