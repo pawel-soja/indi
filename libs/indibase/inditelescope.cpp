@@ -285,42 +285,51 @@ bool Telescope::initProperties()
 
 void Telescope::ISGetProperties(const char *dev)
 {
+    fprintf(stderr, "%s:%d\n", __FUNCTION__, __LINE__);
     //  First we let our parent populate
     DefaultDevice::ISGetProperties(dev);
-
+    fprintf(stderr, "%s:%d\n", __FUNCTION__, __LINE__);
     if (CanGOTO())
     {
+        fprintf(stderr, "%s:%d\n", __FUNCTION__, __LINE__);
         defineProperty(&ActiveDeviceTP);
+        fprintf(stderr, "%s:%d\n", __FUNCTION__, __LINE__);
         loadConfig(true, "ACTIVE_DEVICES");
-
+        fprintf(stderr, "%s:%d\n", __FUNCTION__, __LINE__);
         ISState isDomeIgnored = ISS_OFF;
         if (IUGetConfigSwitch(getDeviceName(), DomePolicySP.name, DomePolicyS[DOME_IGNORED].name, &isDomeIgnored) == 0)
         {
             DomePolicyS[DOME_IGNORED].s = isDomeIgnored;
             DomePolicyS[DOME_LOCKS].s = (isDomeIgnored == ISS_ON) ? ISS_OFF : ISS_ON;
         }
+        fprintf(stderr, "%s:%d\n", __FUNCTION__, __LINE__);
         defineProperty(&DomePolicySP);
+        fprintf(stderr, "%s:%d\n", __FUNCTION__, __LINE__);
     }
-
+    fprintf(stderr, "%s:%d\n", __FUNCTION__, __LINE__);
     defineProperty(&ScopeParametersNP);
     defineProperty(&ScopeConfigNameTP);
-
+    fprintf(stderr, "%s:%d\n", __FUNCTION__, __LINE__);
     if (HasDefaultScopeConfig())
     {
+        fprintf(stderr, "%s:%d\n", __FUNCTION__, __LINE__);
         LoadScopeConfig();
     }
     else
     {
+        fprintf(stderr, "%s:%d\n", __FUNCTION__, __LINE__);
         loadConfig(true, "TELESCOPE_INFO");
         loadConfig(true, "SCOPE_CONFIG_NAME");
     }
-
+    fprintf(stderr, "%s:%d\n", __FUNCTION__, __LINE__);
     if (CanGOTO())
         controller->ISGetProperties(dev);
+    fprintf(stderr, "%s:%d\n", __FUNCTION__, __LINE__);
 }
 
 bool Telescope::updateProperties()
 {
+    fprintf(stderr, "%s:%d\n", __FUNCTION__, __LINE__);
     if (isConnected())
     {
         controller->mapController("MOTIONDIR", "N/S/W/E Control", Controller::CONTROLLER_JOYSTICK, "JOYSTICK_1");
