@@ -37,10 +37,13 @@ double round(double value, int decimal_places)
 
 TEST(ALIGNMENT_TEST, Test_TDVRoundTripEquatorial)
 {
+    fprintf(stderr, "%s:%d\n", __FUNCTION__, __LINE__);
     Scope s(INDI::AlignmentSubsystem::MathPluginManagement::EQUATORIAL);
-
+    fprintf(stderr, "%s:%d\n", __FUNCTION__, __LINE__);
     s.Handshake();
+    fprintf(stderr, "%s:%d\n", __FUNCTION__, __LINE__);
     s.SetAlignmentSubsystemActive(true);
+    fprintf(stderr, "%s:%d\n", __FUNCTION__, __LINE__);
 
     // Vega
     double ra = 18.6156, dec = 38.78361;
@@ -48,15 +51,15 @@ TEST(ALIGNMENT_TEST, Test_TDVRoundTripEquatorial)
     struct ln_equ_posn RaDec;
     RaDec.ra = range360((ra * 360.0) / 24.0); // Convert decimal hours to decimal degrees
     RaDec.dec = rangeDec(dec);
-
+    fprintf(stderr, "%s:%d\n", __FUNCTION__, __LINE__);
     TelescopeDirectionVector TDV = s.TelescopeDirectionVectorFromEquatorialCoordinates(RaDec);
-
+    fprintf(stderr, "%s:%d\n", __FUNCTION__, __LINE__);
     struct ln_equ_posn RaDecResult;
     s.EquatorialCoordinatesFromTelescopeDirectionVector(TDV, RaDecResult);
-
+    fprintf(stderr, "%s:%d\n", __FUNCTION__, __LINE__);
     RaDecResult.ra = range360(RaDecResult.ra);
     RaDecResult.dec = rangeDec(RaDecResult.dec);
-
+    fprintf(stderr, "%s:%d\n", __FUNCTION__, __LINE__);
     ASSERT_DOUBLE_EQ(RaDec.ra, RaDecResult.ra);
     ASSERT_DOUBLE_EQ(RaDec.dec, RaDecResult.dec);
 }
