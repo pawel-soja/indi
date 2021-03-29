@@ -944,6 +944,8 @@ bool DefaultDevice::initProperties()
     fprintf(stderr, "%s:%d (%s)\n", __FILE__, __LINE__, __FUNCTION__);
     INDI::Logger::initProperties(this);
     fprintf(stderr, "%s:%d (%s)\n", __FILE__, __LINE__, __FUNCTION__);
+    fprintf(stderr, "me: %p\n", me);
+    fprintf(stderr, "me: %s\n", me);
     // Ready the logger
     std::string logFile = getDriverExec();
     fprintf(stderr, "%s:%d (%s)\n", __FILE__, __LINE__, __FUNCTION__);
