@@ -24,13 +24,14 @@ jobs:
 
     steps:
     - uses: actions/checkout@v3
-    - uses: msys2/setup-msys2@v2
-      with:
-        update: true
-        install: zlib
-    - name: Running cmake (windows)
+    - name: Install Library
+      run: |
+        vcpkg install zlib:x64-windows
+        vcpkg integrate install
+    - name: Build
       run: |
         cd ${{ github.workspace }}
         mkdir build
         cd build
-        cmake ..
+        cmake .. -DCMAKE_TOOLCHAIN_FILE=C:/vcpkg/scripts/buildsystems/vcpkg.cmake
+        make
