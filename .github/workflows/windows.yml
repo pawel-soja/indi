@@ -27,6 +27,7 @@ jobs:
     - name: Install Library
       run: |
         vcpkg install zlib:x64-windows
+        vcpkg install cfitsio
         vcpkg integrate install
     - name: Build
       run: |
@@ -34,4 +35,4 @@ jobs:
         mkdir build
         cd build
         cmake .. -DCMAKE_TOOLCHAIN_FILE=C:/vcpkg/scripts/buildsystems/vcpkg.cmake
-        make
+
