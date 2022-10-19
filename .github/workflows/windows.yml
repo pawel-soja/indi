@@ -34,5 +34,5 @@ jobs:
         cd ${{ github.workspace }}
         mkdir build
         cd build
-        cmake .. -DCMAKE_TOOLCHAIN_FILE=C:/vcpkg/scripts/buildsystems/vcpkg.cmake
-
+        cmake .. -DINDI_BUILD_SERVER=OFF -DINDI_BUILD_DRIVERS=OFF -DCMAKE_TOOLCHAIN_FILE=C:/vcpkg/scripts/buildsystems/vcpkg.cmake
+        cmake --build .
