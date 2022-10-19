@@ -27,7 +27,7 @@ jobs:
     - name: Install Library
       run: |
         vcpkg install zlib:x64-windows
-        vcpkg install cfitsio
+        vcpkg install cfitsio:x64-windows
         vcpkg integrate install
     - name: Build
       run: |
