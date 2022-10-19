@@ -24,7 +24,7 @@ jobs:
 
     steps:
     - uses: actions/checkout@v3
-    - name: Install Library
+    - name: Install Pre-requisites
       run: |
         vcpkg install zlib:x64-windows
         vcpkg install cfitsio:x64-windows
