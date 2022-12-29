@@ -34,9 +34,9 @@ jobs:
     - name: Prepare System
       uses: msys2/setup-msys2@v2
       with:
-      update: true
-      install: >-
-        base-devel
+        update: true
+        install: >-
+          base-devel
 
     - name: Test System
       run: |
