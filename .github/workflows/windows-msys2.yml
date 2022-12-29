@@ -37,6 +37,7 @@ jobs:
         update: true
         install: >-
           base-devel
+          cmake
 
     - name: Test System
       run: |
