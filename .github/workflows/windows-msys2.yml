@@ -1,0 +1,53 @@
+name: Windows MSYS2
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - '*'
+  pull_request:
+    branches:
+      - '*'
+
+env:
+  # Path to the solution file relative to the root of the project.
+  SOLUTION_FILE_PATH: .
+
+  # Configuration type to build.
+  # You can convert this to a build matrix if you need coverage of multiple configuration types.
+  # https://docs.github.com/actions/learn-github-actions/managing-complex-workflows#using-a-build-matrix
+  BUILD_CONFIGURATION: Debug
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: windows-latest
+    defaults:
+      run:
+        shell: msys2 {0}
+
+    steps:
+    - name: Prepare System
+      uses: msys2/setup-msys2@v2
+      with:
+      update: true
+      install: >-
+        base-devel
+
+    - name: Test System
+      run: |
+        cmake -v
+        gcc -v
+
+    - name: Get INDI Sources
+      uses: actions/checkout@v3
+
+    - name: Build INDI Core
+      run: |
+        cd ${{ github.workspace }}
+        mkdir build
+        cd build
+        cmake .. -DINDI_BUILD_SERVER=OFF -DINDI_BUILD_DRIVERS=OFF
+        cmake --build .
